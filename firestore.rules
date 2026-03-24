@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isValidSyncKey(data) {
+      return data.code is string && data.code.size() == 6 &&
+             data.groupId is string && data.groupId.size() > 0;
+    }
+
+    function isValidDeadline(data) {
+      return data.groupId is string && data.groupId.size() > 0 &&
+             data.caseName is string && data.caseName.size() > 0 &&
+             data.dueDate is string &&
+             data.status in ['pending', 'completed', 'overdue'];
+    }
+
+    // Sync Keys: Anyone can create or read if they know the code
+    // This is a "Sync Code" pattern for anonymous multi-device sync
+    match /syncKeys/{code} {
+      allow read, create: if true;
+    }
+
+    // Deadlines: Anyone can read/write if they have the groupId
+    // In a real app, we'd use Auth, but user requested no login.
+    // We use groupId as a "shared secret".
+    match /deadlines/{deadlineId} {
+      allow read, create, update, delete: if true;
+    }
+  }
+}

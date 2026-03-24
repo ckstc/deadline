@@ -1,0 +1,5 @@
+{
+  "name": "律师期限提醒 (Lawyer Deadline)",
+  "description": "律师专用期限计算与多端同步工具，支持上诉期、举证期等自动计算，无需登录，通过同步码实现手机与电脑同步。",
+  "requestFramePermissions": []
+}

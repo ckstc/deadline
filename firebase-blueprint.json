@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "syncKey": {
+      "title": "Sync Key",
+      "description": "A mapping between a 6-digit sync code and a device group ID.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "description": "The 6-digit sync code." },
+        "groupId": { "type": "string", "description": "The unique ID for the group of synced devices." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["code", "groupId"]
+    },
+    "deadline": {
+      "title": "Deadline",
+      "description": "A legal deadline entry.",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string", "description": "The sync group ID this deadline belongs to." },
+        "caseName": { "type": "string", "description": "Name of the case." },
+        "type": { "type": "string", "description": "Type of deadline (e.g., Appeal)." },
+        "dueDate": { "type": "string", "format": "date-time", "description": "The deadline date." },
+        "remindDays": { "type": "array", "items": { "type": "integer" }, "description": "Days before to remind." },
+        "status": { "type": "string", "enum": ["pending", "completed", "overdue"] },
+        "notes": { "type": "string", "description": "Optional notes for the deadline." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["groupId", "caseName", "dueDate", "status"]
+    }
+  },
+  "firestore": {
+    "/syncKeys/{code}": {
+      "schema": "syncKey",
+      "description": "Stores the mapping of sync codes to group IDs."
+    },
+    "/deadlines/{deadlineId}": {
+      "schema": "deadline",
+      "description": "Stores the actual deadline entries."
+    }
+  }
+}
