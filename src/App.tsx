@@ -115,6 +115,19 @@ export default function App() {
   const [importText, setImportText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
+  const [protocolError, setProtocolError] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
+
+  useEffect(() => {
+    if (window.location.protocol === 'file:' || window.location.protocol.startsWith('content:')) {
+      setProtocolError(true);
+    }
+  }, []);
+
+  const showStatus = (type: 'success' | 'error' | 'info', message: string) => {
+    setSyncStatus({ type, message });
+    setTimeout(() => setSyncStatus(null), 3000);
+  };
 
   const getDeadlineColor = (deadline: Deadline) => {
     if (deadline.status === 'completed') return 'bg-gray-50 border-gray-100 text-gray-400';
@@ -217,7 +230,7 @@ export default function App() {
       setImportText('');
     } catch (error) {
       console.error("Import error:", error);
-      alert("导入解析失败，请检查格式是否正确（建议从Excel复制粘贴）");
+      showStatus('error', "导入解析失败，请检查格式是否正确");
     } finally {
       setIsImporting(false);
     }
@@ -349,17 +362,27 @@ export default function App() {
   };
 
   const handlePair = async () => {
-    const docRef = doc(db, 'syncKeys', inputSyncCode);
-    const docSnap = await getDoc(docRef);
+    if (!inputSyncCode || inputSyncCode.length < 6) {
+      showStatus('error', '请输入6位同步码');
+      return;
+    }
     
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      localStorage.setItem('lawyer_group_id', data.groupId);
-      setGroupId(data.groupId);
-      setShowSyncModal(false);
-      alert('同步成功！');
-    } else {
-      alert('无效的同步码');
+    try {
+      const docRef = doc(db, 'syncKeys', inputSyncCode);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        localStorage.setItem('lawyer_group_id', data.groupId);
+        setGroupId(data.groupId);
+        setShowSyncModal(false);
+        showStatus('success', '同步成功！');
+      } else {
+        showStatus('error', '无效的同步码');
+      }
+    } catch (error) {
+      console.error("Sync error:", error);
+      showStatus('error', '同步失败，请检查网络连接或运行环境');
     }
   };
 
@@ -407,6 +430,38 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#1A1A1A] font-sans">
+      {/* Protocol Warning */}
+      <AnimatePresence>
+        {protocolError && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            className="bg-red-600 text-white px-4 py-3 text-center text-sm font-bold flex items-center justify-center gap-2"
+          >
+            <AlertCircle className="w-4 h-4" />
+            <span>检测到您直接打开了 HTML 文件。由于浏览器安全限制，同步功能可能无法正常工作。请通过 Web 服务器运行。</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Status Toast */}
+      <AnimatePresence>
+        {syncStatus && (
+          <motion.div 
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 20, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            className={`fixed top-0 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-2 ${
+              syncStatus.type === 'success' ? 'bg-green-500 text-white' : 
+              syncStatus.type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+            }`}
+          >
+            {syncStatus.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+            {syncStatus.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
