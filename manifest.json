@@ -1,0 +1,21 @@
+{
+  "name": "律师期限提醒",
+  "short_name": "律师期限",
+  "description": "律师专用期限计算与多端同步工具",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/law/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/law/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
